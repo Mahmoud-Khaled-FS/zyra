@@ -1,0 +1,14 @@
+"""
+This is docs comment
+"""
+
+POST https://postman-echo.com/post
+
+[query]
+foo = bar
+page = 1
+
+[body]
+{
+  "json": "test"
+}
