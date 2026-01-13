@@ -1,0 +1,22 @@
+doc {
+  This is docs commnet
+}
+
+request {
+  method = POST
+  url = {{BASE_URL}}/post
+}
+
+headers {
+  Authorization = Bearer {{TOKEN}}
+}
+
+query {
+  foo = bar
+  page = 1
+}
+
+#[json]
+body {
+  "json": "test"
+}

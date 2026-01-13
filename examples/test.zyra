@@ -2,13 +2,16 @@
 This is docs comment
 """
 
-POST https://postman-echo.com/post
+POST {{BASE_URL}}/post
+
+[headers]
+Authorization = Bearer {{TOKEN}}
 
 [query]
 foo = bar
 page = 1
 
-[body]
+[body; json]
 {
   "json": "test"
 }

@@ -36,7 +36,7 @@ func (r *Request) AddBody(body string) {
 	r.Body = body
 }
 
-func (r *Request) Send() {
+func (r *Request) Run() {
 	start := time.Now()
 
 	var sb strings.Builder

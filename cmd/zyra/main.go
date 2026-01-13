@@ -1,34 +1,64 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
-	httpclient "github.com/Mahmoud-Khaled-FS/zyra/internal/httpClient"
 	"github.com/Mahmoud-Khaled-FS/zyra/internal/parser"
+	"github.com/Mahmoud-Khaled-FS/zyra/internal/zyra"
 )
 
 func main() {
+	configPath := "./examples/zyra.config"
+	bytesConfig, err := os.ReadFile(configPath)
+	if err != nil {
+		panic(err)
+	}
+
+	config, err := parser.ParseConfig(string(bytesConfig))
+	if err != nil {
+		panic(err)
+	}
+	// 1. interpolate AST
+	fmt.Println(config)
+
 	path := "./examples/test.zyra"
 	bytes, err := os.ReadFile(path)
 	if err != nil {
 		panic(err)
 	}
 
-	lexer := parser.NewTokenizer(string(bytes))
-	tokens := lexer.Tokenize()
-	// for index, value := range tokens {
-	// 	fmt.Printf("%d) %s\n", index, value.Type)
+	doc, err := parser.ParseDocument(string(bytes))
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(doc)
+
+	z := zyra.NewZyra(config)
+	req, err := z.Process(doc)
+	if err != nil {
+		panic(err)
+	}
+	req.Run()
+
+	// lexer := parser.NewTokenizer(string(bytes))
+	// tokens := lexer.Tokenize()
+	// for _, value := range tokens {
+	// 	value.Print()
 	// }
-	parser := parser.NewParser(tokens)
-	zyraParsed := parser.ParseRequest()
+	// parser := parser.NewParser(tokens)
+	// zyraParsed := parser.ParseRequest()
 
-	req := httpclient.NewRequest(zyraParsed.Method, zyraParsed.URL)
+	// req := httpclient.NewRequest(zyraParsed.Method, zyraParsed.URL)
 
-	req.AddQueries(zyraParsed.Query)
-	req.AddHeaders(zyraParsed.Headers)
-	req.AddBody(zyraParsed.Body)
+	// req.AddQueries(zyraParsed.Query)
+	// req.AddHeaders(zyraParsed.Headers)
+	// req.AddBody(zyraParsed.Body)
 
-	req.Send()
+	// // interpolator := interpolator.NewInterpolator(zyraConfig.Context)
+	// // req.InterpolateRequest(interpolator)
+
+	// req.Send()
 
 	// resp, err := http.Get(request.URL)
 	// if err != nil {
