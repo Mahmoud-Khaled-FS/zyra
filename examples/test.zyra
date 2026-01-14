@@ -11,7 +11,22 @@ Authorization = Bearer {{TOKEN}}
 foo = bar
 page = 1
 
-[body; json]
+[body]
 {
   "json": "test"
 }
+
+[assert]
+res.status == 200
+
+res.headers has "Content-Type"
+res.headers.Content-Type == "application/json"
+
+res.body is json
+res.body.data is object
+
+res.body.data.id is int
+res.body.data.id >= 1
+
+res.body.data.name >= 3
+res.body.data.name <= 55

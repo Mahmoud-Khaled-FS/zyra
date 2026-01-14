@@ -5,22 +5,23 @@ import (
 	"os"
 
 	"github.com/Mahmoud-Khaled-FS/zyra/internal/parser"
-	"github.com/Mahmoud-Khaled-FS/zyra/internal/zyra"
 )
 
 func main() {
-	configPath := "./examples/zyra.config"
-	bytesConfig, err := os.ReadFile(configPath)
-	if err != nil {
-		panic(err)
-	}
+	// cmd.Execute()
 
-	config, err := parser.ParseConfig(string(bytesConfig))
-	if err != nil {
-		panic(err)
-	}
-	// 1. interpolate AST
-	fmt.Println(config)
+	// configPath := "./examples/zyra.config"
+	// bytesConfig, err := os.ReadFile(configPath)
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	// config, err := parser.ParseConfig(string(bytesConfig))
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// // 1. interpolate AST
+	// fmt.Println(config)
 
 	path := "./examples/test.zyra"
 	bytes, err := os.ReadFile(path)
@@ -34,12 +35,12 @@ func main() {
 	}
 	fmt.Println(doc)
 
-	z := zyra.NewZyra(config)
-	req, err := z.Process(doc)
-	if err != nil {
-		panic(err)
-	}
-	req.Run()
+	// z := zyra.NewZyra(config)
+	// req, err := z.Process(doc)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// req.Run()
 
 	// lexer := parser.NewTokenizer(string(bytes))
 	// tokens := lexer.Tokenize()

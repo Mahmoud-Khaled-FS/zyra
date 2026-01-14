@@ -1,18 +1,30 @@
 package parser
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/Mahmoud-Khaled-FS/zyra/internal/utils"
 )
 
+type Assertion struct {
+	Left     string // res.body.data.id
+	Operator string // ==, >=, is, has, length >=
+	Right    string // 200, int, json, "application/json"
+	Line     int
+}
+
 type Document struct {
 	DocComment string
-	Method     string
-	Path       string
-	Headers    map[string]string
-	Query      map[string]string
-	Body       string
+
+	Method string
+	Path   string
+
+	Headers map[string]string
+	Query   map[string]string
+	Body    string
+
+	Assertions []Assertion
 }
 
 func ParseDocument(src string) (*Document, error) {
@@ -109,9 +121,74 @@ func (p *parser) parseDocumentSection() error {
 	case "body":
 		return p.parseBody()
 
+	case "assert":
+		return p.parseAssertSection()
+
 	default:
 		return p.error("unknown section: " + section)
 	}
+}
+
+func (p *parser) parseAssertSection() error {
+	for p.pos < len(p.lines) {
+		line := strings.TrimSpace(p.current().Text)
+
+		switch {
+		case line == "":
+			p.pos++
+
+		case isSection(line):
+			return nil
+
+		default:
+			if err := p.parseAssertionLine(); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (p *parser) parseAssertionLine() error {
+	line := strings.TrimSpace(p.current().Text)
+
+	assertion, err := parseAssertion(line)
+	if err != nil {
+		return p.error(err.Error())
+	}
+
+	assertion.Line = p.current().Num
+	p.doc.Assertions = append(p.doc.Assertions, assertion)
+
+	p.pos++
+	return nil
+}
+
+func parseAssertion(line string) (Assertion, error) {
+	operators := []string{
+		" length >= ",
+		" length <= ",
+		" length == ",
+		" >= ",
+		" <= ",
+		" == ",
+		" != ",
+		" has ",
+		" is ",
+	}
+
+	for _, op := range operators {
+		if strings.Contains(line, op) {
+			parts := strings.SplitN(line, op, 2)
+			return Assertion{
+				Left:     strings.TrimSpace(parts[0]),
+				Operator: strings.TrimSpace(op),
+				Right:    strings.TrimSpace(parts[1]),
+			}, nil
+		}
+	}
+
+	return Assertion{}, fmt.Errorf("invalid assertion syntax")
 }
 
 func isRequestLine(line string) bool {
