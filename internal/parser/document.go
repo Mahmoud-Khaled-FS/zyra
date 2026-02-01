@@ -1,18 +1,11 @@
 package parser
 
 import (
-	"fmt"
 	"strings"
 
+	"github.com/Mahmoud-Khaled-FS/zyra/internal/assert"
 	"github.com/Mahmoud-Khaled-FS/zyra/internal/utils"
 )
-
-type Assertion struct {
-	Left     string // res.body.data.id
-	Operator string // ==, >=, is, has, length >=
-	Right    string // 200, int, json, "application/json"
-	Line     int
-}
 
 type Document struct {
 	DocComment string
@@ -24,7 +17,7 @@ type Document struct {
 	Query   map[string]string
 	Body    string
 
-	Assertions []Assertion
+	Assertions []assert.Assertion
 }
 
 func ParseDocument(src string) (*Document, error) {
@@ -152,43 +145,15 @@ func (p *parser) parseAssertSection() error {
 func (p *parser) parseAssertionLine() error {
 	line := strings.TrimSpace(p.current().Text)
 
-	assertion, err := parseAssertion(line)
+	assertion, err := assert.ParseAssertionLine(line, p.current().Num)
 	if err != nil {
 		return p.error(err.Error())
 	}
 
-	assertion.Line = p.current().Num
 	p.doc.Assertions = append(p.doc.Assertions, assertion)
 
 	p.pos++
 	return nil
-}
-
-func parseAssertion(line string) (Assertion, error) {
-	operators := []string{
-		" length >= ",
-		" length <= ",
-		" length == ",
-		" >= ",
-		" <= ",
-		" == ",
-		" != ",
-		" has ",
-		" is ",
-	}
-
-	for _, op := range operators {
-		if strings.Contains(line, op) {
-			parts := strings.SplitN(line, op, 2)
-			return Assertion{
-				Left:     strings.TrimSpace(parts[0]),
-				Operator: strings.TrimSpace(op),
-				Right:    strings.TrimSpace(parts[1]),
-			}, nil
-		}
-	}
-
-	return Assertion{}, fmt.Errorf("invalid assertion syntax")
 }
 
 func isRequestLine(line string) bool {

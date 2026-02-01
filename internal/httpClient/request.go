@@ -2,8 +2,6 @@ package httpclient
 
 import (
 	"bytes"
-	"fmt"
-	"io"
 	"net/http"
 	"strings"
 	"time"
@@ -36,7 +34,7 @@ func (r *Request) AddBody(body string) {
 	r.Body = body
 }
 
-func (r *Request) Run() {
+func (r *Request) Run() (*ZyraResponse, error) {
 	start := time.Now()
 
 	var sb strings.Builder
@@ -77,20 +75,23 @@ func (r *Request) Run() {
 	if err != nil {
 		panic(err)
 	}
-	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	// fmt.Println("Request>>>")
+	// fmt.Printf("Method: %s\n", r.Method)
+	// fmt.Printf("URL: %s\n", url)
+	// fmt.Println("<<<Response")
+	// fmt.Printf("Status: %d\n", resp.StatusCode)
+	// fmt.Printf("StatusText: %s\n", resp.Status)
+	// fmt.Printf("Headers Count: %d\n", len(resp.Header))
+	// fmt.Printf("Body: %s\n", string(body))
+	// fmt.Printf("Duration: %d\n", time.Since(start))
+
+	zr, err := NewResponse(resp)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	fmt.Println("Request>>>")
-	fmt.Printf("Method: %s\n", r.Method)
-	fmt.Printf("URL: %s\n", url)
-	fmt.Println("<<<Response")
-	fmt.Printf("Status: %d\n", resp.StatusCode)
-	fmt.Printf("StatusText: %s\n", resp.Status)
-	fmt.Printf("Headers Count: %d\n", len(resp.Header))
-	fmt.Printf("Body: %s\n", string(body))
-	fmt.Printf("Duration: %d\n", time.Since(start))
+	zr.Duration = time.Since(start)
+
+	return zr, nil
 }

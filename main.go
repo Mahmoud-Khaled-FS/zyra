@@ -1,26 +1,26 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/Mahmoud-Khaled-FS/zyra/internal/parser"
+	"github.com/Mahmoud-Khaled-FS/zyra/internal/zyra"
 )
 
 func main() {
 	// cmd.Execute()
 
-	// configPath := "./examples/zyra.config"
-	// bytesConfig, err := os.ReadFile(configPath)
-	// if err != nil {
-	// 	panic(err)
-	// }
+	configPath := "./examples/zyra.config"
+	bytesConfig, err := os.ReadFile(configPath)
+	if err != nil {
+		panic(err)
+	}
 
-	// config, err := parser.ParseConfig(string(bytesConfig))
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// // 1. interpolate AST
+	config, err := parser.ParseConfig(string(bytesConfig))
+	if err != nil {
+		panic(err)
+	}
+	// 1. interpolate AST
 	// fmt.Println(config)
 
 	path := "./examples/test.zyra"
@@ -33,14 +33,10 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(doc)
+	// fmt.Println(doc)
 
-	// z := zyra.NewZyra(config)
-	// req, err := z.Process(doc)
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// req.Run()
+	z := zyra.NewZyra(config)
+	z.Process(doc)
 
 	// lexer := parser.NewTokenizer(string(bytes))
 	// tokens := lexer.Tokenize()
