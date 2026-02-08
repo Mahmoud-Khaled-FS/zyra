@@ -22,100 +22,185 @@ const (
 	OpLengthLte Operator = "length<="
 )
 
+type Value struct {
+	Raw any
+}
+
+type PathSegment struct {
+	Key   *string
+	Index *int
+}
+
 type Assertion struct {
 	// Path: dot-separated access to the response object, e.g. res.body.data.id
-	Path []string
+	Path []PathSegment
 
 	// Operator: "==", ">=", "<=", "is", "has", etc.
-	Operator Operator
+	Fn string
 
 	// Value: optional, e.g. 200, "application/json", 3, 55
 	// For type checks like `is int`, this can be a string: "int", "json", "object"
-	Value any
+	Args []Value
 
 	Line int
 }
 
-func ParseAssertionLine(line string, lineNum int) (Assertion, error) {
+func ParseAssertionLine(line string, lineNum int) (*Assertion, error) {
 	line = strings.TrimSpace(line)
 	if line == "" {
-		return Assertion{}, fmt.Errorf("empty line")
+		return nil, fmt.Errorf("empty line")
 	}
 
-	// List of operators in order of decreasing length (important!)
-	operators := []string{
-		" length >= ",
-		" length <= ",
-		" length == ",
-		">=",
-		"<=",
-		"==",
-		"!=",
-		">",
-		"<",
-		" is ",
-		" has ",
+	tokens := tokenizeAssertion(line)
+	if len(tokens) < 2 {
+		return nil, fmt.Errorf("invalid assertion syntax: %s", line)
 	}
 
-	for _, op := range operators {
-		if strings.Contains(line, op) {
-			parts := strings.SplitN(line, op, 2)
-			if len(parts) != 2 {
-				return Assertion{}, fmt.Errorf("invalid assertion syntax")
+	path := parsePath(tokens[0])
+	fn := tokens[1]
+
+	args := make([]Value, 0, len(tokens)-2)
+	for _, t := range tokens[2:] {
+		args = append(args, Value{Raw: parseValue(t)})
+	}
+
+	return &Assertion{
+		Path: path,
+		Fn:   fn,
+		Args: args,
+		Line: lineNum,
+	}, nil
+}
+
+func parsePath(path string) []PathSegment {
+	var segments []PathSegment
+	var buf strings.Builder
+	inBracket := false
+	inQuotes := false
+
+	flushKey := func() {
+		if buf.Len() == 0 {
+			return
+		}
+		s := buf.String()
+		buf.Reset()
+		segments = append(segments, PathSegment{Key: &s})
+	}
+
+	for i := 0; i < len(path); i++ {
+		c := path[i]
+
+		switch c {
+		case '.':
+			if !inBracket {
+				flushKey()
+				continue
+			}
+			buf.WriteByte(c)
+
+		case '[':
+			flushKey()
+			inBracket = true
+
+		case ']':
+			val := buf.String()
+			buf.Reset()
+			inBracket = false
+
+			// index [0]
+			if idx, err := strconv.Atoi(val); err == nil {
+				segments = append(segments, PathSegment{Index: &idx})
+			} else {
+				// string key ["foo"]
+				val = strings.Trim(val, `"`)
+				segments = append(segments, PathSegment{Key: &val})
 			}
 
-			left := strings.TrimSpace(parts[0])
-			right := strings.TrimSpace(parts[1])
+		case '"':
+			inQuotes = !inQuotes
 
-			// Convert numeric values if possible
-			var value any = right
-			if num, err := strconv.Atoi(right); err == nil {
-				value = num
-			} else if strings.HasPrefix(right, `"`) && strings.HasSuffix(right, `"`) {
-				value = strings.Trim(right, `"`)
-			}
-
-			// Normalize operator for length
-			var operator Operator
-			switch strings.TrimSpace(op) {
-			case "length >=":
-				operator = OpLengthGte
-			case "length <=":
-				operator = OpLengthLte
-			case "length ==":
-				operator = OpLengthEq
-			case "==":
-				operator = OpEq
-			case "!=":
-				operator = OpNe
-			case ">=":
-				operator = OpGte
-			case "<=":
-				operator = OpLte
-			case ">":
-				operator = OpGt
-			case "<":
-				operator = OpLt
-			case "is":
-				operator = OpIs
-			case "has":
-				operator = OpHas
-			default:
-				return Assertion{}, fmt.Errorf("unknown operator: %s", op)
-			}
-
-			return Assertion{
-				Path:     parsePath(left),
-				Operator: operator,
-				Value:    value,
-				Line:     lineNum,
-			}, nil
+		default:
+			buf.WriteByte(c)
 		}
 	}
 
-	return Assertion{}, fmt.Errorf("no valid operator found in line")
+	flushKey()
+	return segments
 }
 
-func parsePath(path string) []string {
-	return strings.Split(path, ".")
+func tokenizeAssertion(s string) []string {
+	var tokens []string
+	var buf strings.Builder
+	inQuotes := false
+	brackets := 0
+
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+
+		switch c {
+		case '"':
+			inQuotes = !inQuotes
+			buf.WriteByte(c)
+
+		case '[':
+			brackets++
+			buf.WriteByte(c)
+
+		case ']':
+			brackets--
+			buf.WriteByte(c)
+
+		case ' ', '\t':
+			if inQuotes || brackets > 0 {
+				buf.WriteByte(c)
+			} else if buf.Len() > 0 {
+				tokens = append(tokens, buf.String())
+				buf.Reset()
+			}
+
+		default:
+			buf.WriteByte(c)
+		}
+	}
+
+	if buf.Len() > 0 {
+		tokens = append(tokens, buf.String())
+	}
+
+	return tokens
+}
+
+func parseValue(v string) any {
+	v = strings.TrimSpace(v)
+
+	// string literal
+	if strings.HasPrefix(v, `"`) && strings.HasSuffix(v, `"`) {
+		return strings.Trim(v, `"`)
+	}
+
+	// int
+	if i, err := strconv.Atoi(v); err == nil {
+		return i
+	}
+
+	// float
+	if f, err := strconv.ParseFloat(v, 64); err == nil {
+		return f
+	}
+
+	// bool
+	if v == "true" || v == "false" {
+		return v == "true"
+	}
+
+	// fallback (identifier like json, object, null)
+	return v
+}
+
+func (a *Assertion) GetPath() string {
+	path := ""
+	for _, p := range a.Path {
+		path += *p.Key
+	}
+	return path
 }

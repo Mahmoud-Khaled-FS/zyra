@@ -17,16 +17,16 @@ page = 1
 }
 
 [assert]
-res.status == 200
+status eq 200
 
-res.headers has "Content-Type"
-res.headers.Content-Type == "application/json; charset=utf-8"
+headers has "Content-Type"
+headers.Content-Type eq "application/json; charset=utf-8"
 
-res.body is json
-res.body.args is object
+body is json
+body.args is object
 
-res.body.args.foo is string
-res.body.args.foo == "bar"
+body.args.foo is string
+body.args.foo eq "bar"
 
-res.body.args.page is string
-res.body.args.page == "2"
+body.args.page is string
+body.args.page eq "2"

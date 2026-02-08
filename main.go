@@ -3,11 +3,13 @@ package main
 import (
 	"os"
 
+	"github.com/Mahmoud-Khaled-FS/zyra/internal/assert/builtin"
 	"github.com/Mahmoud-Khaled-FS/zyra/internal/parser"
 	"github.com/Mahmoud-Khaled-FS/zyra/internal/zyra"
 )
 
 func main() {
+	builtin.InitBuiltin()
 	// cmd.Execute()
 
 	configPath := "./examples/zyra.config"

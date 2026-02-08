@@ -8,6 +8,7 @@ import (
 )
 
 type Document struct {
+	Lines      []Line
 	DocComment string
 
 	Method string
@@ -17,7 +18,7 @@ type Document struct {
 	Query   map[string]string
 	Body    string
 
-	Assertions []assert.Assertion
+	Assertions []*assert.Assertion
 }
 
 func ParseDocument(src string) (*Document, error) {
@@ -28,6 +29,7 @@ func ParseDocument(src string) (*Document, error) {
 		doc: &Document{
 			Headers: make(map[string]string),
 			Query:   make(map[string]string),
+			Lines:   lines,
 		},
 	}
 

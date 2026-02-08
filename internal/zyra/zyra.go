@@ -2,11 +2,11 @@ package zyra
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/Mahmoud-Khaled-FS/zyra/internal/assert"
 	httpclient "github.com/Mahmoud-Khaled-FS/zyra/internal/httpClient"
 	"github.com/Mahmoud-Khaled-FS/zyra/internal/interpolator"
+	"github.com/Mahmoud-Khaled-FS/zyra/internal/logger"
 	"github.com/Mahmoud-Khaled-FS/zyra/internal/parser"
 )
 
@@ -44,7 +44,11 @@ func (z *Zyra) Process(doc *parser.Document) error {
 
 	for _, a := range doc.Assertions {
 		err = assert.Evaluate(zr, a)
-		printAssertionResult(a, "1", err)
+		if err != nil {
+			printAssertionResult(a, doc.Lines[a.Line-1].Text, err)
+		} else {
+			printAssertionResult(a, doc.Lines[a.Line-1].Text, nil)
+		}
 	}
 	return nil
 }
@@ -81,21 +85,12 @@ func (z *Zyra) interpolateDocument(doc *parser.Document) (*parser.Document, erro
 	return cp, nil
 }
 
-func formatAssertion(a assert.Assertion) string {
-	path := strings.Join(a.Path, ".")
-	if a.Value == nil {
-		return fmt.Sprintf("%s %s", path, a.Operator)
-	}
-	return fmt.Sprintf("%s %s %v", path, a.Operator, a.Value)
-}
-
-func printAssertionResult(a assert.Assertion, actual any, err error) {
-	msg := formatAssertion(a)
+func printAssertionResult(a *assert.Assertion, line string, err error) {
 
 	if err != nil {
-		fmt.Printf("[FAILED] line %d | %s\n", a.Line, msg)
-		fmt.Printf("  → got: %v\n", actual)
+		logger.Failed("line %d | %s", a.Line, line)
+		fmt.Printf("  → error: %v\n", err)
 	} else {
-		fmt.Printf("[PASSED] line %d | %s\n", a.Line, msg)
+		logger.Passed("line %d | %s", a.Line, line)
 	}
 }
