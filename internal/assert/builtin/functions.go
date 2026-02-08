@@ -3,6 +3,9 @@ package builtin
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
+
+	"github.com/Mahmoud-Khaled-FS/zyra/internal/logger"
 )
 
 func fnEq(actual any, args []any) error {
@@ -147,6 +150,55 @@ func fnLen(actual any, args []any) error {
 		return fmt.Errorf("length %d != %d", l, expected)
 	}
 
+	return nil
+}
+
+func fnStartWith(actual any, args []any) error {
+	if len(args) != 1 {
+		return fmt.Errorf("startWith expects 1 argument")
+	}
+
+	prefix, ok := args[0].(string)
+	if !ok {
+		return fmt.Errorf("startWith argument must be string")
+	}
+
+	current, ok := actual.(string)
+	if !ok {
+		return fmt.Errorf("startWith argument must be string")
+	}
+
+	if !strings.HasPrefix(current, prefix) {
+		return fmt.Errorf("%s not starting with %s", current, prefix)
+	}
+
+	return nil
+}
+
+func fnEndWith(actual any, args []any) error {
+	if len(args) != 1 {
+		return fmt.Errorf("endWith expects 1 argument")
+	}
+
+	prefix, ok := args[0].(string)
+	if !ok {
+		return fmt.Errorf("endWith argument must be string")
+	}
+
+	current, ok := actual.(string)
+	if !ok {
+		return fmt.Errorf("endWith argument must be string")
+	}
+
+	if !strings.HasSuffix(current, prefix) {
+		return fmt.Errorf("%s not ending with %s", current, prefix)
+	}
+
+	return nil
+}
+
+func fnDebug(actual any, args []any) error {
+	logger.Debug("%s", logger.PrettyString(actual))
 	return nil
 }
 

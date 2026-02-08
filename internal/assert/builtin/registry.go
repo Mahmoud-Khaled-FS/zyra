@@ -46,4 +46,7 @@ func InitBuiltin() {
 	MustRegister("is", fnIs)
 	MustRegister("has", fnHas)
 	MustRegister("len", fnLen)
+	MustRegister("startWith", fnStartWith)
+	MustRegister("endWith", fnEndWith)
+	MustRegister("debug", fnDebug)
 }

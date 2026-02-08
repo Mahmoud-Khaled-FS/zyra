@@ -1,0 +1,36 @@
+"""
+Create post request and validate response
+"""
+
+POST https://httpbin.org/post
+
+[headers]
+Authorization = Bearer test-token-123
+Content-Type = application/json
+
+[query]
+foo = bar
+page = 2
+
+[body]
+{
+  "json": "test"
+}
+
+[assert]
+status eq 200
+
+headers has "Content-Type"
+headers.Content-Type startWith "application/json"
+
+body is json
+body.args is object
+
+body.args.foo is string
+body.args.foo eq "bar"
+
+body.args.page is string
+body.args.page eq "2"
+
+body.json.json is string
+body.json.json eq "test"

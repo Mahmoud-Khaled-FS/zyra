@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"encoding/json"
 	"fmt"
 )
 
@@ -76,4 +77,12 @@ func Passed(format string, a ...any) {
 
 func Failed(format string, a ...any) {
 	log(FAILED, format, a...)
+}
+
+func PrettyString(v any) string {
+	b, err := json.MarshalIndent(v, "", "  ")
+	if err != nil {
+		return fmt.Sprintf("%+v", v)
+	}
+	return string(b)
 }

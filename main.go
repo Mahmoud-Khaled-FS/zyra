@@ -1,44 +1,12 @@
 package main
 
 import (
-	"os"
-
-	"github.com/Mahmoud-Khaled-FS/zyra/internal/assert/builtin"
-	"github.com/Mahmoud-Khaled-FS/zyra/internal/parser"
-	"github.com/Mahmoud-Khaled-FS/zyra/internal/zyra"
+	"github.com/Mahmoud-Khaled-FS/zyra/cmd"
 )
 
 func main() {
-	builtin.InitBuiltin()
-	// cmd.Execute()
-
-	configPath := "./examples/zyra.config"
-	bytesConfig, err := os.ReadFile(configPath)
-	if err != nil {
-		panic(err)
-	}
-
-	config, err := parser.ParseConfig(string(bytesConfig))
-	if err != nil {
-		panic(err)
-	}
-	// 1. interpolate AST
-	// fmt.Println(config)
-
-	path := "./examples/test.zyra"
-	bytes, err := os.ReadFile(path)
-	if err != nil {
-		panic(err)
-	}
-
-	doc, err := parser.ParseDocument(string(bytes))
-	if err != nil {
-		panic(err)
-	}
-	// fmt.Println(doc)
-
-	z := zyra.NewZyra(config)
-	z.Process(doc)
+	cmd.Execute()
+	return
 
 	// lexer := parser.NewTokenizer(string(bytes))
 	// tokens := lexer.Tokenize()

@@ -20,7 +20,8 @@ page = 1
 status eq 200
 
 headers has "Content-Type"
-headers.Content-Type eq "application/json; charset=utf-8"
+headers.Content-Type startWith "application/json"
+headers.Content-Type endWith "utf-8"
 
 body is json
 body.args is object

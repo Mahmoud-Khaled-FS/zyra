@@ -198,9 +198,9 @@ func parseValue(v string) any {
 }
 
 func (a *Assertion) GetPath() string {
-	path := ""
+	var path strings.Builder
 	for _, p := range a.Path {
-		path += *p.Key
+		path.WriteString(*p.Key)
 	}
-	return path
+	return path.String()
 }

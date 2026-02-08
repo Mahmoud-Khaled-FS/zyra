@@ -17,6 +17,9 @@ type Zyra struct {
 }
 
 func NewZyra(config *parser.Config) *Zyra {
+	if config == nil {
+		config = &parser.Config{}
+	}
 	return &Zyra{
 		Interpolator: interpolator.Interpolator{
 			Ctx: config.Context,

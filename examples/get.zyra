@@ -1,0 +1,15 @@
+GET https://randomuser.me/api/
+
+[assert]
+status eq 200
+
+body is json
+body.results is array
+
+body.results[0].email is string
+body.results[0].name.first is string
+body.results[0].name debug
+
+body.info debug
+
+body.info.page is int
