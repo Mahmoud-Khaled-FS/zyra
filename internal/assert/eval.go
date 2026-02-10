@@ -21,6 +21,16 @@ func Evaluate(resp *httpclient.ZyraResponse, a *Assertion) error {
 
 	var args []any = make([]any, len(a.Args))
 	for i, a := range a.Args {
+		if a.Type == "ID" {
+			path, ok := a.Raw.([]PathSegment)
+			if ok {
+				args[i], err = ResolvePath(resp, path)
+				if err != nil {
+					args[i] = a.Raw
+				}
+			}
+			continue
+		}
 		// TODO (MAHMOUD) - value should have type to avoid unnessecry code
 		args[i] = a.Raw
 	}

@@ -23,7 +23,8 @@ const (
 )
 
 type Value struct {
-	Raw any
+	Raw  any
+	Type string
 }
 
 type PathSegment struct {
@@ -61,7 +62,7 @@ func ParseAssertionLine(line string, lineNum int) (*Assertion, error) {
 
 	args := make([]Value, 0, len(tokens)-2)
 	for _, t := range tokens[2:] {
-		args = append(args, Value{Raw: parseValue(t)})
+		args = append(args, parseValue(t))
 	}
 
 	return &Assertion{
@@ -170,31 +171,34 @@ func tokenizeAssertion(s string) []string {
 	return tokens
 }
 
-func parseValue(v string) any {
+func parseValue(v string) Value {
 	v = strings.TrimSpace(v)
 
 	// string literal
 	if strings.HasPrefix(v, `"`) && strings.HasSuffix(v, `"`) {
-		return strings.Trim(v, `"`)
+		return Value{Raw: strings.Trim(v, `"`), Type: "string"}
 	}
 
 	// int
 	if i, err := strconv.Atoi(v); err == nil {
-		return i
+		return Value{Raw: i, Type: "int"}
 	}
 
 	// float
 	if f, err := strconv.ParseFloat(v, 64); err == nil {
-		return f
+		return Value{Raw: f, Type: "float"}
 	}
 
 	// bool
 	if v == "true" || v == "false" {
-		return v == "true"
+		return Value{Raw: v == "true", Type: "bool"}
 	}
 
+	if strings.HasPrefix(v, "body") || strings.HasPrefix(v, "status") || strings.HasPrefix(v, "headers") {
+		return Value{Raw: parsePath(v), Type: "ID"}
+	}
 	// fallback (identifier like json, object, null)
-	return v
+	return Value{Raw: string(v), Type: "key"}
 }
 
 func (a *Assertion) GetPath() string {

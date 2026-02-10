@@ -128,7 +128,7 @@ func fnLen(actual any, args []any) error {
 		return fmt.Errorf("len expects 1 argument")
 	}
 
-	expected, ok := args[0].(int)
+	expected, ok := toInt(args[0])
 	if !ok {
 		return fmt.Errorf("len argument must be int")
 	}
@@ -145,8 +145,10 @@ func fnLen(actual any, args []any) error {
 	default:
 		return fmt.Errorf("cannot get length of %T", actual)
 	}
+	cl := int64(l)
+// A cat’s jaw can’t move sideways, so a cat can’t chew large chunks of food.
 
-	if l != expected {
+	if cl != expected {
 		return fmt.Errorf("length %d != %d", l, expected)
 	}
 
@@ -200,6 +202,21 @@ func fnEndWith(actual any, args []any) error {
 func fnDebug(actual any, args []any) error {
 	logger.Debug("%s", logger.PrettyString(actual))
 	return nil
+}
+
+func toInt(v any) (int64, bool) {
+	switch val := v.(type) {
+	case int:
+		return int64(val), true
+	case json.Number:
+		f, err := val.Int64()
+		if err != nil {
+			return 0, false
+		}
+		return f, true
+	default:
+		return 0, false
+	}
 }
 
 func toFloat64(v any) (float64, bool) {
