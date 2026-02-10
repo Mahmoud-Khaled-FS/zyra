@@ -1,0 +1,16 @@
+GET https://api.adviceslip.com/advice
+
+[headers]
+Accept = application/json
+
+[assert]
+status eq 200
+body is json
+
+body.slip is object
+body.slip.id is int
+body.slip.advice is string
+
+body.slip debug
+
+body.slip.id gt 0
