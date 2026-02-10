@@ -3,6 +3,7 @@ package zyra
 import (
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/Mahmoud-Khaled-FS/zyra/internal/parser"
 	"github.com/Mahmoud-Khaled-FS/zyra/internal/utils"
@@ -17,6 +18,8 @@ type ZyraDir struct {
 	configPath string
 	files      []ZyraFile
 }
+
+const zyraExt = ".zyra"
 
 func loadConfig(path string) (*parser.Config, error) {
 	if path == "" {
@@ -51,6 +54,10 @@ func loadDir(path string) (*ZyraDir, error) {
 	for _, f := range files {
 		if isConfigFile(path, f) {
 			zd.configPath = f
+			continue
+		}
+
+		if !strings.HasSuffix(f, zyraExt) {
 			continue
 		}
 
