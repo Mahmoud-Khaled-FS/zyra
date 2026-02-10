@@ -26,6 +26,11 @@ var runCmd = &cobra.Command{
 			return err
 		}
 
+		noTest, err := cmd.Flags().GetBool("no-test")
+		if err != nil {
+			return err
+		}
+
 		if cfg != "" {
 			if _, err := os.Stat(cfg); err != nil {
 				return fmt.Errorf("invalid path: %s", cfg)
@@ -33,9 +38,10 @@ var runCmd = &cobra.Command{
 		}
 
 		path := args[0]
-		err = zyra.RunRequestFile(zyra.RunRequestFileOption{
-			FilePath:   path,
+		err = zyra.Run(zyra.RunOption{
+			Path:       path,
 			ConfigPath: cfg,
+			NoTest:     noTest,
 		})
 
 		if err != nil {
@@ -48,5 +54,6 @@ var runCmd = &cobra.Command{
 
 func init() {
 	runCmd.Flags().StringP("config", "c", "", "config file path")
+	runCmd.Flags().Bool("no-test", false, "skip test execution")
 	rootCmd.AddCommand(runCmd)
 }

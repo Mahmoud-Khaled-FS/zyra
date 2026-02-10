@@ -21,6 +21,7 @@ func Evaluate(resp *httpclient.ZyraResponse, a *Assertion) error {
 
 	var args []any = make([]any, len(a.Args))
 	for i, a := range a.Args {
+		// TODO (MAHMOUD) - value should have type to avoid unnessecry code
 		args[i] = a.Raw
 	}
 

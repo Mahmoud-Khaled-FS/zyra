@@ -6,7 +6,7 @@ func (p *parser) parseKeyValueSection(dst map[string]string) error {
 	for p.pos < len(p.lines) {
 		line := strings.TrimSpace(p.current().Text)
 
-		if line == "" {
+		if line == "" || strings.HasPrefix(line, "#") {
 			p.pos++
 			continue
 		}

@@ -1,0 +1,15 @@
+GET https://catfact.ninja/fact
+
+GET https://catfact.ninja/fact
+
+[assert]
+status eq 200
+body is json
+
+body.fact is string
+body.length is int
+
+body debug
+
+# Need to support this test
+# len body.fact eq body.length

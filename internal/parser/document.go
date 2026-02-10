@@ -44,6 +44,11 @@ func (p *parser) parseDocument() error {
 	for p.pos < len(p.lines) {
 		line := strings.TrimSpace(p.current().Text)
 
+		// Comment Line
+		if strings.HasPrefix(line, "#") {
+			continue
+		}
+
 		switch {
 		case line == "":
 			p.pos++
@@ -129,7 +134,7 @@ func (p *parser) parseAssertSection() error {
 		line := strings.TrimSpace(p.current().Text)
 
 		switch {
-		case line == "":
+		case line == "" || strings.HasPrefix(line, "#"):
 			p.pos++
 
 		case isSection(line):

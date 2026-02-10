@@ -13,10 +13,10 @@ import (
 type Zyra struct {
 	Interpolator interpolator.Interpolator
 	Config       *parser.Config
-	// Builder      runtime.RequestBuilder
+	NoTest       bool
 }
 
-func NewZyra(config *parser.Config) *Zyra {
+func NewZyra(config *parser.Config, noTest bool) *Zyra {
 	if config == nil {
 		config = &parser.Config{}
 	}
@@ -25,13 +25,14 @@ func NewZyra(config *parser.Config) *Zyra {
 			Ctx: config.Context,
 		},
 		Config: config,
+		NoTest: noTest,
 	}
 }
 
-func (z *Zyra) Process(doc *parser.Document) error {
-	resolved, err := z.interpolateDocument(doc)
+func (z *Zyra) Process(zf ZyraFile) (ZyraResult, error) {
+	resolved, err := z.interpolateDocument(zf.Doc)
 	if err != nil {
-		return err
+		return ZyraResult{}, err
 	}
 
 	// 2. build request
@@ -42,18 +43,29 @@ func (z *Zyra) Process(doc *parser.Document) error {
 	zr, err := req.Run()
 
 	if err != nil {
-		panic(err)
+		return ZyraResult{}, err
 	}
 
-	for _, a := range doc.Assertions {
+	result := ZyraResult{
+		File:     zf.File,
+		Response: zr,
+	}
+
+	if z.NoTest {
+		return result, nil
+	}
+	for _, a := range zf.Doc.Assertions {
 		err = assert.Evaluate(zr, a)
 		if err != nil {
-			printAssertionResult(a, doc.Lines[a.Line-1].Text, err)
-		} else {
-			printAssertionResult(a, doc.Lines[a.Line-1].Text, nil)
+			result.Errors = append(result.Errors, err)
 		}
+		// if err != nil {
+		// 	printAssertionResult(a, zf.Doc.Lines[a.Line-1].Text, err)
+		// } else {
+		// 	printAssertionResult(a, zf.Doc.Lines[a.Line-1].Text, nil)
+		// }
 	}
-	return nil
+	return result, nil
 }
 
 func (z *Zyra) interpolateDocument(doc *parser.Document) (*parser.Document, error) {
