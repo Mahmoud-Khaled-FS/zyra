@@ -3,6 +3,8 @@ package interpolator
 import (
 	"fmt"
 	"strings"
+
+	"github.com/Mahmoud-Khaled-FS/zyra/internal/parser"
 )
 
 // TODO (MAHMOUD) - Default Values {{TOKEN|guest}}
@@ -15,7 +17,7 @@ type Interpolator struct {
 	Ctx Context
 }
 
-func (i *Interpolator) Interpolate(raw string) (string, error) {
+func (i *Interpolator) Interpolate(raw string, doc *parser.Document) (string, error) {
 	var out strings.Builder
 
 	for {
@@ -33,9 +35,12 @@ func (i *Interpolator) Interpolate(raw string) (string, error) {
 		out.WriteString(raw[:start])
 
 		key := raw[start+2 : start+2+end]
-		val, ok := i.Ctx[key]
+		val, ok := doc.Vars[key]
 		if !ok {
-			return "", fmt.Errorf("undefined variable: %s", key)
+			val, ok = i.Ctx[key]
+			if !ok {
+				return "", fmt.Errorf("undefined variable: %s", key)
+			}
 		}
 
 		out.WriteString(val)

@@ -141,7 +141,6 @@ func RunDirConcurrent(zd *ZyraDir, config *parser.Config, noTest bool) ([]ZyraRe
 		close(resCh)
 	}()
 
-	// تحقق من الأخطاء أولًا
 	if len(errCh) > 0 {
 		return results, <-errCh
 	}

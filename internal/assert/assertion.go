@@ -197,6 +197,10 @@ func parseValue(v string) Value {
 	if strings.HasPrefix(v, "body") || strings.HasPrefix(v, "status") || strings.HasPrefix(v, "headers") {
 		return Value{Raw: parsePath(v), Type: "ID"}
 	}
+
+	if strings.HasPrefix(v, "{{") && strings.HasSuffix(v, "}}") {
+		return Value{Raw: v, Type: "template"}
+	}
 	// fallback (identifier like json, object, null)
 	return Value{Raw: string(v), Type: "key"}
 }

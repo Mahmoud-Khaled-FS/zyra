@@ -1,0 +1,11 @@
+GET https://dogapi.dog/api/v2/breeds/{{id}}
+
+[vars]
+id = 036feed0-da8a-42c9-ab9a-57449b530b13
+
+[headers]
+Content-Type = application/json
+
+[assert]
+body debug
+body.data.id eq {{id}}

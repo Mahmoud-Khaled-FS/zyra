@@ -16,6 +16,7 @@ type Document struct {
 
 	Headers map[string]string
 	Query   map[string]string
+	Vars    map[string]string
 	Body    string
 
 	Assertions []*assert.Assertion
@@ -29,6 +30,7 @@ func ParseDocument(src string) (*Document, error) {
 		doc: &Document{
 			Headers: make(map[string]string),
 			Query:   make(map[string]string),
+			Vars:    make(map[string]string),
 			Lines:   lines,
 		},
 	}
@@ -123,6 +125,9 @@ func (p *parser) parseDocumentSection() error {
 
 	case "assert":
 		return p.parseAssertSection()
+
+	case "vars":
+		return p.parseKeyValueSection(p.doc.Vars)
 
 	default:
 		return p.error("unknown section: " + section)

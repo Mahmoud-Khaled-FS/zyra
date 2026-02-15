@@ -55,6 +55,19 @@ func (z *Zyra) Process(zf ZyraFile) (ZyraResult, error) {
 		return result, nil
 	}
 	for _, a := range zf.Doc.Assertions {
+		for i, arg := range a.Args {
+			if arg.Type == "template" {
+				v, ok := arg.Raw.(string)
+				if !ok {
+					return result, fmt.Errorf("Can not parse %v", arg.Raw)
+				}
+				raw, err := z.Interpolator.Interpolate(v, zf.Doc)
+				if err != nil {
+					return result, err
+				}
+				a.Args[i] = assert.Value{Raw: raw, Type: "string"}
+			}
+		}
 		err = assert.Evaluate(zr, a)
 		if err != nil {
 			result.Errors = append(result.Errors, err)
@@ -73,26 +86,26 @@ func (z *Zyra) interpolateDocument(doc *parser.Document) (*parser.Document, erro
 
 	var err error
 
-	cp.Path, err = z.Interpolator.Interpolate(doc.Path)
+	cp.Path, err = z.Interpolator.Interpolate(doc.Path, doc)
 	if err != nil {
 		return nil, err
 	}
 
 	for k, v := range doc.Headers {
-		cp.Headers[k], err = z.Interpolator.Interpolate(v)
+		cp.Headers[k], err = z.Interpolator.Interpolate(v, doc)
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	for k, v := range doc.Query {
-		cp.Query[k], err = z.Interpolator.Interpolate(v)
+		cp.Query[k], err = z.Interpolator.Interpolate(v, doc)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	cp.Body, err = z.Interpolator.Interpolate(doc.Body)
+	cp.Body, err = z.Interpolator.Interpolate(doc.Body, doc)
 	if err != nil {
 		return nil, err
 	}
