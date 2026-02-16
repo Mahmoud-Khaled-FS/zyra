@@ -7,5 +7,5 @@ id = 036feed0-da8a-42c9-ab9a-57449b530b13
 Content-Type = application/json
 
 [assert]
-body debug
+body.data.attributes debug
 body.data.id eq {{id}}

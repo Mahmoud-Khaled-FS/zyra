@@ -5,6 +5,7 @@ import (
 	httpclient "github.com/Mahmoud-Khaled-FS/zyra/internal/httpClient"
 	"github.com/Mahmoud-Khaled-FS/zyra/internal/parser"
 	"github.com/Mahmoud-Khaled-FS/zyra/internal/resolver"
+	"github.com/Mahmoud-Khaled-FS/zyra/internal/utils"
 )
 
 type Zyra struct {
@@ -35,7 +36,11 @@ func (z *Zyra) Process(zf ZyraFile) (ZyraResult, error) {
 	}
 
 	// 2. build request
-	req := httpclient.NewRequest(doc.Method, doc.Path)
+	url, err := getRequestUrl(doc.Path, z.Config)
+	if err != nil {
+		return ZyraResult{}, err
+	}
+	req := httpclient.NewRequest(doc.Method, url)
 	req.AddHeaders(doc.Headers)
 	req.AddQueries(doc.Query)
 	req.AddBody(doc.Body)
@@ -60,4 +65,21 @@ func (z *Zyra) Process(zf ZyraFile) (ZyraResult, error) {
 		}
 	}
 	return result, nil
+}
+
+func getRequestUrl(path string, config *parser.Config) (string, error) {
+	base, ok := config.Options["base_url"]
+	if !ok {
+		return path, nil
+	}
+
+	if utils.IsValidURL(path) {
+		return path, nil
+	}
+
+	url, err := utils.JoinURL(base, path)
+	if err != nil {
+		return "", err
+	}
+	return url, nil
 }

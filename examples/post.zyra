@@ -2,7 +2,7 @@
 This is docs comment
 """
 
-POST {{BASE_URL}}/post
+POST /post
 
 [headers]
 Authorization = Bearer {{TOKEN}}

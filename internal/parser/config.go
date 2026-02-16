@@ -4,6 +4,7 @@ import "strings"
 
 type Config struct {
 	Context map[string]string
+	Options map[string]string
 }
 
 func ParseConfig(src string) (*Config, error) {
@@ -13,6 +14,7 @@ func ParseConfig(src string) (*Config, error) {
 		lines: lines,
 		config: &Config{
 			Context: make(map[string]string),
+			Options: make(map[string]string),
 		},
 	}
 
@@ -50,6 +52,9 @@ func (p *parser) parseConfigSection() error {
 	switch section {
 	case "context":
 		return p.parseKeyValueSection(p.config.Context)
+
+	case "options":
+		return p.parseKeyValueSection(p.config.Options)
 
 	default:
 		return p.error("unknown section: " + section)
