@@ -118,6 +118,7 @@ func (p *parser) parseDocumentSection() error {
 	}
 }
 
+// FIXME: Fix duplicate assertion parsing
 func (p *parser) parseAssertSection() error {
 	for p.pos < len(p.lines) {
 		line := strings.TrimSpace(p.current().Text)
@@ -138,6 +139,26 @@ func (p *parser) parseAssertSection() error {
 	return nil
 }
 
+func (p *parser) parseConfigAssertSection() error {
+	for p.pos < len(p.lines) {
+		line := strings.TrimSpace(p.current().Text)
+
+		switch {
+		case line == "" || strings.HasPrefix(line, "#"):
+			p.pos++
+
+		case isSection(line):
+			return nil
+
+		default:
+			if err := p.parseConfigAssertionLine(); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
 func (p *parser) parseAssertionLine() error {
 	line := strings.TrimSpace(p.current().Text)
 
@@ -147,6 +168,20 @@ func (p *parser) parseAssertionLine() error {
 	}
 
 	p.doc.Assertions = append(p.doc.Assertions, assertion)
+
+	p.pos++
+	return nil
+}
+
+func (p *parser) parseConfigAssertionLine() error {
+	line := strings.TrimSpace(p.current().Text)
+
+	assertion, err := ParseAssertionLine(line, p.current().Num)
+	if err != nil {
+		return p.error(err.Error())
+	}
+
+	p.config.Assertions = append(p.config.Assertions, assertion)
 
 	p.pos++
 	return nil

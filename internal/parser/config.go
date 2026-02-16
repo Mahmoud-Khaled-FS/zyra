@@ -1,10 +1,15 @@
 package parser
 
-import "strings"
+import (
+	"strings"
+
+	"github.com/Mahmoud-Khaled-FS/zyra/internal/model"
+)
 
 type Config struct {
-	Context map[string]string
-	Options map[string]string
+	Context    map[string]string
+	Options    map[string]string
+	Assertions []*model.Assertion
 }
 
 func ParseConfig(src string) (*Config, error) {
@@ -55,6 +60,9 @@ func (p *parser) parseConfigSection() error {
 
 	case "options":
 		return p.parseKeyValueSection(p.config.Options)
+
+	case "global_assert":
+		return p.parseConfigAssertSection()
 
 	default:
 		return p.error("unknown section: " + section)

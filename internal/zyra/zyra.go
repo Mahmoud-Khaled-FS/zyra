@@ -58,6 +58,14 @@ func (z *Zyra) Process(zf ZyraFile) (ZyraResult, error) {
 	if z.NoTest {
 		return result, nil
 	}
+
+	for _, a := range z.Config.Assertions {
+		err = assert.Evaluate(zr, a)
+		if err != nil {
+			result.Errors = append(result.Errors, err)
+		}
+	}
+
 	for _, a := range doc.Assertions {
 		err = assert.Evaluate(zr, a)
 		if err != nil {
