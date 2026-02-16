@@ -7,6 +7,7 @@ import (
 	httpclient "github.com/Mahmoud-Khaled-FS/zyra/internal/httpClient"
 	"github.com/Mahmoud-Khaled-FS/zyra/internal/interpolator"
 	"github.com/Mahmoud-Khaled-FS/zyra/internal/logger"
+	"github.com/Mahmoud-Khaled-FS/zyra/internal/model"
 	"github.com/Mahmoud-Khaled-FS/zyra/internal/parser"
 )
 
@@ -65,7 +66,7 @@ func (z *Zyra) Process(zf ZyraFile) (ZyraResult, error) {
 				if err != nil {
 					return result, err
 				}
-				a.Args[i] = assert.Value{Raw: raw, Type: "string"}
+				a.Args[i] = model.Value{Raw: raw, Type: "string"}
 			}
 		}
 		err = assert.Evaluate(zr, a)
@@ -81,7 +82,7 @@ func (z *Zyra) Process(zf ZyraFile) (ZyraResult, error) {
 	return result, nil
 }
 
-func (z *Zyra) interpolateDocument(doc *parser.Document) (*parser.Document, error) {
+func (z *Zyra) interpolateDocument(doc *model.Document) (*model.Document, error) {
 	cp := doc.Clone()
 
 	var err error
@@ -113,7 +114,7 @@ func (z *Zyra) interpolateDocument(doc *parser.Document) (*parser.Document, erro
 	return cp, nil
 }
 
-func printAssertionResult(a *assert.Assertion, line string, err error) {
+func printAssertionResult(a *model.Assertion, line string, err error) {
 
 	if err != nil {
 		logger.Failed("line %d | %s", a.Line, line)

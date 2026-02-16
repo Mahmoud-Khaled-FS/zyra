@@ -6,9 +6,10 @@ import (
 
 	"github.com/Mahmoud-Khaled-FS/zyra/internal/assert/builtin"
 	httpclient "github.com/Mahmoud-Khaled-FS/zyra/internal/httpClient"
+	"github.com/Mahmoud-Khaled-FS/zyra/internal/model"
 )
 
-func Evaluate(resp *httpclient.ZyraResponse, a *Assertion) error {
+func Evaluate(resp *httpclient.ZyraResponse, a *model.Assertion) error {
 	value, err := ResolvePath(resp, a.Path)
 	if err != nil {
 		return fmt.Errorf("line %d: %w", a.Line, err)
@@ -22,7 +23,7 @@ func Evaluate(resp *httpclient.ZyraResponse, a *Assertion) error {
 	var args []any = make([]any, len(a.Args))
 	for i, a := range a.Args {
 		if a.Type == "ID" {
-			path, ok := a.Raw.([]PathSegment)
+			path, ok := a.Raw.([]model.PathSegment)
 			if ok {
 				args[i], err = ResolvePath(resp, path)
 				if err != nil {
@@ -31,7 +32,6 @@ func Evaluate(resp *httpclient.ZyraResponse, a *Assertion) error {
 			}
 			continue
 		}
-		// TODO (MAHMOUD) - value should have type to avoid unnessecry code
 		args[i] = a.Raw
 	}
 
@@ -42,7 +42,7 @@ func Evaluate(resp *httpclient.ZyraResponse, a *Assertion) error {
 	return nil
 }
 
-func ResolvePath(resp *httpclient.ZyraResponse, path []PathSegment) (any, error) {
+func ResolvePath(resp *httpclient.ZyraResponse, path []model.PathSegment) (any, error) {
 	if len(path) == 0 {
 		return nil, fmt.Errorf("empty path")
 	}
@@ -69,7 +69,7 @@ func ResolvePath(resp *httpclient.ZyraResponse, path []PathSegment) (any, error)
 	}
 }
 
-func resolveHeaders(headers map[string]string, path []PathSegment) (any, error) {
+func resolveHeaders(headers map[string]string, path []model.PathSegment) (any, error) {
 	if len(path) == 0 {
 		return headers, nil
 	}
@@ -87,7 +87,7 @@ func resolveHeaders(headers map[string]string, path []PathSegment) (any, error) 
 	return val, nil
 }
 
-func resolveBody(body any, path []PathSegment) (any, error) {
+func resolveBody(body any, path []model.PathSegment) (any, error) {
 	current := body
 
 	for _, seg := range path {

@@ -5,13 +5,14 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/Mahmoud-Khaled-FS/zyra/internal/model"
 	"github.com/Mahmoud-Khaled-FS/zyra/internal/parser"
 	"github.com/Mahmoud-Khaled-FS/zyra/internal/utils"
 )
 
 type ZyraFile struct {
 	File string
-	Doc  *parser.Document
+	Doc  *model.Document
 }
 
 type ZyraDir struct {
@@ -34,7 +35,7 @@ func loadConfig(path string) (*parser.Config, error) {
 	return parser.ParseConfig(string(data))
 }
 
-func loadDoc(path string) (*parser.Document, error) {
+func loadDoc(path string) (*model.Document, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err

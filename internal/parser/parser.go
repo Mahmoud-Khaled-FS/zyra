@@ -1,24 +1,23 @@
 package parser
 
-import "strings"
+import (
+	"strings"
+
+	"github.com/Mahmoud-Khaled-FS/zyra/internal/model"
+)
 
 type parser struct {
-	lines  []Line
+	lines  []model.Line
 	pos    int
-	doc    *Document
+	doc    *model.Document
 	config *Config
 }
 
-type Line struct {
-	Text string
-	Num  int
-}
-
-func (p *parser) current() Line {
+func (p *parser) current() model.Line {
 	return p.lines[p.pos]
 }
 
-func collectLines(lines []Line) string {
+func collectLines(lines []model.Line) string {
 	var b strings.Builder
 	for i, l := range lines {
 		if i > 0 {
@@ -29,11 +28,11 @@ func collectLines(lines []Line) string {
 	return b.String()
 }
 
-func splitLines(src string) []Line {
+func splitLines(src string) []model.Line {
 	raw := strings.Split(src, "\n")
-	lines := make([]Line, 0, len(raw))
+	lines := make([]model.Line, 0, len(raw))
 	for i, l := range raw {
-		lines = append(lines, Line{
+		lines = append(lines, model.Line{
 			Text: strings.TrimRight(l, "\r"),
 			Num:  i + 1,
 		})

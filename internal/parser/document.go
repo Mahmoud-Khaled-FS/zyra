@@ -3,31 +3,15 @@ package parser
 import (
 	"strings"
 
-	"github.com/Mahmoud-Khaled-FS/zyra/internal/assert"
-	"github.com/Mahmoud-Khaled-FS/zyra/internal/utils"
+	"github.com/Mahmoud-Khaled-FS/zyra/internal/model"
 )
 
-type Document struct {
-	Lines      []Line
-	DocComment string
-
-	Method string
-	Path   string
-
-	Headers map[string]string
-	Query   map[string]string
-	Vars    map[string]string
-	Body    string
-
-	Assertions []*assert.Assertion
-}
-
-func ParseDocument(src string) (*Document, error) {
+func ParseDocument(src string) (*model.Document, error) {
 	lines := splitLines(src)
 
 	p := &parser{
 		lines: lines,
-		doc: &Document{
+		doc: &model.Document{
 			Headers: make(map[string]string),
 			Query:   make(map[string]string),
 			Vars:    make(map[string]string),
@@ -157,7 +141,7 @@ func (p *parser) parseAssertSection() error {
 func (p *parser) parseAssertionLine() error {
 	line := strings.TrimSpace(p.current().Text)
 
-	assertion, err := assert.ParseAssertionLine(line, p.current().Num)
+	assertion, err := ParseAssertionLine(line, p.current().Num)
 	if err != nil {
 		return p.error(err.Error())
 	}
@@ -179,16 +163,4 @@ func isRequestLine(line string) bool {
 	default:
 		return false
 	}
-}
-
-func (d *Document) Clone() *Document {
-	cp := &Document{
-		DocComment: d.DocComment,
-		Method:     d.Method,
-		Path:       d.Path,
-		Body:       d.Body,
-		Headers:    utils.CloneMap(d.Headers),
-		Query:      utils.CloneMap(d.Query),
-	}
-	return cp
 }

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Mahmoud-Khaled-FS/zyra/internal/parser"
+	"github.com/Mahmoud-Khaled-FS/zyra/internal/model"
 )
 
 // TODO (MAHMOUD) - Default Values {{TOKEN|guest}}
@@ -17,7 +17,7 @@ type Interpolator struct {
 	Ctx Context
 }
 
-func (i *Interpolator) Interpolate(raw string, doc *parser.Document) (string, error) {
+func (i *Interpolator) Interpolate(raw string, doc *model.Document) (string, error) {
 	var out strings.Builder
 
 	for {
