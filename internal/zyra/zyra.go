@@ -1,20 +1,15 @@
 package zyra
 
 import (
-	"fmt"
-
 	"github.com/Mahmoud-Khaled-FS/zyra/internal/assert"
 	httpclient "github.com/Mahmoud-Khaled-FS/zyra/internal/httpClient"
-	"github.com/Mahmoud-Khaled-FS/zyra/internal/interpolator"
-	"github.com/Mahmoud-Khaled-FS/zyra/internal/logger"
-	"github.com/Mahmoud-Khaled-FS/zyra/internal/model"
 	"github.com/Mahmoud-Khaled-FS/zyra/internal/parser"
+	"github.com/Mahmoud-Khaled-FS/zyra/internal/resolver"
 )
 
 type Zyra struct {
-	Interpolator interpolator.Interpolator
-	Config       *parser.Config
-	NoTest       bool
+	Config *parser.Config
+	NoTest bool
 }
 
 func NewZyra(config *parser.Config, noTest bool) *Zyra {
@@ -22,25 +17,28 @@ func NewZyra(config *parser.Config, noTest bool) *Zyra {
 		config = &parser.Config{}
 	}
 	return &Zyra{
-		Interpolator: interpolator.Interpolator{
-			Ctx: config.Context,
-		},
 		Config: config,
 		NoTest: noTest,
 	}
 }
 
 func (z *Zyra) Process(zf ZyraFile) (ZyraResult, error) {
-	resolved, err := z.interpolateDocument(zf.Doc)
+	ctx := resolver.NewContext()
+	ctx.Merge(z.Config.Context)
+	if len(zf.Doc.Vars) > 0 {
+		ctx.Merge(zf.Doc.Vars)
+	}
+
+	doc, err := resolver.ResolveDocument(zf.Doc, ctx)
 	if err != nil {
 		return ZyraResult{}, err
 	}
 
 	// 2. build request
-	req := httpclient.NewRequest(resolved.Method, resolved.Path)
-	req.AddHeaders(resolved.Headers)
-	req.AddQueries(resolved.Query)
-	req.AddBody(resolved.Body)
+	req := httpclient.NewRequest(doc.Method, doc.Path)
+	req.AddHeaders(doc.Headers)
+	req.AddQueries(doc.Query)
+	req.AddBody(doc.Body)
 	zr, err := req.Run()
 
 	if err != nil {
@@ -55,71 +53,11 @@ func (z *Zyra) Process(zf ZyraFile) (ZyraResult, error) {
 	if z.NoTest {
 		return result, nil
 	}
-	for _, a := range zf.Doc.Assertions {
-		for i, arg := range a.Args {
-			if arg.Type == "template" {
-				v, ok := arg.Raw.(string)
-				if !ok {
-					return result, fmt.Errorf("Can not parse %v", arg.Raw)
-				}
-				raw, err := z.Interpolator.Interpolate(v, zf.Doc)
-				if err != nil {
-					return result, err
-				}
-				a.Args[i] = model.Value{Raw: raw, Type: "string"}
-			}
-		}
+	for _, a := range doc.Assertions {
 		err = assert.Evaluate(zr, a)
 		if err != nil {
 			result.Errors = append(result.Errors, err)
 		}
-		// if err != nil {
-		// 	printAssertionResult(a, zf.Doc.Lines[a.Line-1].Text, err)
-		// } else {
-		// 	printAssertionResult(a, zf.Doc.Lines[a.Line-1].Text, nil)
-		// }
 	}
 	return result, nil
-}
-
-func (z *Zyra) interpolateDocument(doc *model.Document) (*model.Document, error) {
-	cp := doc.Clone()
-
-	var err error
-
-	cp.Path, err = z.Interpolator.Interpolate(doc.Path, doc)
-	if err != nil {
-		return nil, err
-	}
-
-	for k, v := range doc.Headers {
-		cp.Headers[k], err = z.Interpolator.Interpolate(v, doc)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	for k, v := range doc.Query {
-		cp.Query[k], err = z.Interpolator.Interpolate(v, doc)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	cp.Body, err = z.Interpolator.Interpolate(doc.Body, doc)
-	if err != nil {
-		return nil, err
-	}
-
-	return cp, nil
-}
-
-func printAssertionResult(a *model.Assertion, line string, err error) {
-
-	if err != nil {
-		logger.Failed("line %d | %s", a.Line, line)
-		fmt.Printf("  → error: %v\n", err)
-	} else {
-		logger.Passed("line %d | %s", a.Line, line)
-	}
 }

@@ -38,5 +38,22 @@ func (d *Document) Clone() *Document {
 		Headers:    utils.CloneMap(d.Headers),
 		Query:      utils.CloneMap(d.Query),
 	}
+
+	cp.Assertions = make([]*Assertion, len(d.Assertions))
+	for i, a := range d.Assertions {
+		cp.Assertions[i] = a.Clone()
+	}
+	return cp
+}
+
+func (d *Document) CloneAssertion() *Document {
+	cp := &Document{
+		DocComment: d.DocComment,
+		Method:     d.Method,
+		Path:       d.Path,
+		Body:       d.Body,
+		Headers:    utils.CloneMap(d.Headers),
+		Query:      utils.CloneMap(d.Query),
+	}
 	return cp
 }

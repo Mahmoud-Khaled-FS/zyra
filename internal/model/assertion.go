@@ -46,3 +46,19 @@ func (a *Assertion) GetPath() string {
 	}
 	return path.String()
 }
+
+func (a *Assertion) Clone() *Assertion {
+	// Deep copy the Args
+	argsCopy := make([]Value, len(a.Args))
+	copy(argsCopy, a.Args)
+
+	// Copy Path slice
+	pathCopy := append([]PathSegment{}, a.Path...)
+
+	return &Assertion{
+		Path: pathCopy,
+		Fn:   a.Fn,
+		Args: argsCopy,
+		Line: a.Line,
+	}
+}
